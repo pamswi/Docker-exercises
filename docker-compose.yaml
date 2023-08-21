@@ -1,23 +1,33 @@
 version: "3.8"
 services:
   flask-app:
-    image: duo-app:v2
-    build: .
-    ports:
-    - target: 5500
-      published: 5500
+    build: ./flask-app
+    depends_on:
+      - mysql
     networks:
-      - duo-net   
+      - trio
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+  mysql:
+    image: trio-db
+    build: ./db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: flask-db
+    networks:
+      - trio
+
   nginx:
     image: nginx:alpine
-    networks:
-      - duo-net
-    ports:
-    - target: 80
-      published: 80
     volumes:
-    - type: bind
-      source: ./nginx.conf
-      target: /etc/nginx/nginx.conf
+      - type: bind
+        source: ./nginx/nginx.conf
+        target: /etc/nginx/nginx.conf
+    ports:
+      - target: 80
+        published: 80
+    networks:
+      - trio
+
 networks:
-  duo-net:
+  trio:
